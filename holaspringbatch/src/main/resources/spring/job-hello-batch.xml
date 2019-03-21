@@ -28,10 +28,19 @@
 
 
 	<batch:job id="helloWorldJob">
-		<batch:step id="step1">
-			<batch:tasklet>
+		<batch:step id="step1" >
+			<batch:tasklet transaction-manager="transactionManager">
 				<batch:chunk reader="cvsFileItemReader" writer="itemWriter"
 					processor="itemProcessor" commit-interval="2">
+				</batch:chunk>
+			</batch:tasklet>
+			<batch:next on="FAILED" to="step2"/>
+			<batch:next on="COMPLETED" to="step2"/>
+		</batch:step>
+		<batch:step id="step2" >
+			<batch:tasklet transaction-manager="transactionManager">
+				<batch:chunk reader="cvsFileItemReader" writer="itemWriter"
+					processor="itemProcessor" commit-interval="3">
 				</batch:chunk>
 			</batch:tasklet>
 		</batch:step>
@@ -75,7 +84,7 @@
 		<!-- <task:scheduled ref="runScheduler" method="run" fixed-delay="5000" 
 			/> -->
 		<task:scheduled ref="runScheduler" method="run"
-			cron="*/20 * * * * *" />
+			cron="*/5 * * * * *" />
 	</task:scheduled-tasks>
 
 </beans>

@@ -7,7 +7,7 @@ import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.FieldSet;
 import org.springframework.validation.BindException;
 
-public class ReportFieldSetMapper implements FieldSetMapper<Report> {
+public class ReportFieldSetMapper implements FieldSetMapper<Report>{
 
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 	
@@ -24,7 +24,9 @@ public class ReportFieldSetMapper implements FieldSetMapper<Report> {
 		try {
 			report.setDate(dateFormat.parse(date));
 		} catch (ParseException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			throw new BindException("fallo.......", date);
+			
 		}
 		
 		return report;
