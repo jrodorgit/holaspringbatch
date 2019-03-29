@@ -28,47 +28,74 @@
 
 
 	<!-- encargados de tareas -->
-	<bean id="taskletA"
-		class="net.rodor.holaspringbatch.tasklet.TaskletA"/>
-		
-	<bean id="taskletB"
-		class="net.rodor.holaspringbatch.tasklet.TaskletB"/>
-	
+	<bean id="taskletA" class="net.rodor.holaspringbatch.tasklet.TaskletA" />
+
+	<bean id="taskletB" class="net.rodor.holaspringbatch.tasklet.TaskletB" />
+	<bean id="deciderB" class="net.rodor.holaspringbatch.decider.TaskletBDecider" />
+	<bean id="promotionListener"
+		class="org.springframework.batch.core.listener.ExecutionContextPromotionListener">
+		<property name="keys" value="whereToGo" />
+	</bean>
+
+
+	<bean id="taskletC" class="net.rodor.holaspringbatch.tasklet.TaskletC" />
+
+	<bean id="taskletD" class="net.rodor.holaspringbatch.tasklet.TaskletD" />
 
 	<batch:job id="helloWorldJob">
+
 		<!-- lectura de ficheros, validacion, transformacion y almacenamiento -->
 
 		<!-- movemos los ficheros de la carpeta de input hacia carpeta procesando -->
 		<batch:step id="step-A">
 
 			<batch:tasklet ref="taskletA" />
-			
-			<!-- Si hay un error paramos el Job. 
-				Si al ejecutar la tarea encontramos algo que deba parar el Job salimos por STOP.
-				Si todo va bien lanzamos step B -->
+
+			<!-- Si hay un error paramos el Job. Si al ejecutar la tarea encontramos 
+				algo que deba parar el Job salimos por STOP. Si todo va bien lanzamos step 
+				B -->
 			<batch:end on="FAILED" />
 			<batch:end on="STOPPED" />
 			<batch:next on="COMPLETED" to="step-B" />
-			
+
 		</batch:step>
 
-		<batch:step id="step-B">
-		
+		<batch:step id="step-B" next="decisionB">
+
 			<batch:tasklet ref="taskletB" />
-			
+			<batch:listeners>
+				<batch:listener ref="promotionListener" />
+			</batch:listeners>
 		</batch:step>
 
-		
+		<batch:decision id="decisionB" decider="deciderB">
+			<batch:next on="GO_C" to="step-C" />
+			<batch:next on="GO_D" to="step-D" />
+		</batch:decision>
+
+		<batch:step id="step-C">
+
+			<batch:tasklet ref="taskletC" />
+
+		</batch:step>
+
+		<batch:step id="step-D">
+
+			<batch:tasklet ref="taskletD" />
+
+		</batch:step>
+
+
 	</batch:job>
 
-	
+
 	<!-- scheduler -->
 	<bean id="runScheduler" class="net.rodor.holaspringbatch.scheduler.HelloBatchScheduler" />
 
 	<!-- Run every 10 seconds -->
 	<task:scheduled-tasks>
 		<task:scheduled ref="runScheduler" method="run"
-			cron="*/10 * * * * *" />
+			cron="*/2 * * * * *" />
 	</task:scheduled-tasks>
 
 </beans>
